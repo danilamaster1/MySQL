@@ -1,0 +1,118 @@
+DROP DATABASE IF EXISTS muzstore;
+CREATE DATABASE muzstore;
+USE muzstore;
+
+DROP TABLE IF EXISTS users;
+CREATE TABLE users (
+	id SERIAL PRIMARY KEY,
+	firstname VARCHAR(150),
+	lastname VARCHAR(150),
+	email VARCHAR(150) UNIQUE,
+	phone BIGINT UNSIGNED UNIQUE,
+	birthday_at DATE,
+	hometown VARCHAR(150)
+);
+
+-- добавил бонусы для оплаты
+DROP TABLE IF EXISTS bonuses;
+CREATE TABLE bonuses (
+	user_id SERIAL PRIMARY KEY,
+	total BIGINT UNSIGNED DEFAULT NULL,
+	FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS catalogs;
+CREATE TABLE catalogs (
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(150)	
+);
+
+DROP TABLE IF EXISTS products;
+CREATE TABLE products (
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(150),
+	description TEXT,
+	price DECIMAL(11,2),
+	catalog_id BIGINT UNSIGNED,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+	updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	INDEX products_name_idx(name),
+	FOREIGN KEY (catalog_id) REFERENCES catalogs(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- способ оплаты
+DROP TABLE IF EXISTS payment_type;
+CREATE TABLE payment_type (
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(150)
+);
+
+DROP TABLE IF EXISTS orders;
+CREATE TABLE orders (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT UNSIGNED,
+	payment_type_id BIGINT UNSIGNED,
+	created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (payment_type_id) REFERENCES payment_type(id) ON UPDATE CASCADE ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS orders_products;
+CREATE TABLE orders_products (
+	order_id BIGINT UNSIGNED,
+	product_id BIGINT UNSIGNED,
+	PRIMARY KEY (order_id, product_id),
+	FOREIGN KEY (order_id) REFERENCES orders(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+-- отзывы о товарах
+DROP TABLE IF EXISTS reviews;
+CREATE TABLE reviews (
+	id SERIAL PRIMARY KEY,
+	user_id BIGINT UNSIGNED NOT NULL,
+	product_id BIGINT UNSIGNED NOT NULL,
+	body TEXT,
+	created_at DATETIME DEFAULT NOW(),
+	FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+	FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS discounts;
+CREATE TABLE discounts (
+  id SERIAL PRIMARY KEY,
+  product_id BIGINT UNSIGNED,
+  discount FLOAT UNSIGNED COMMENT 'Величина скидки от 0.0 до 1.0',
+  started_at DATETIME,
+  finished_at DATETIME,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  KEY index_of_product_id(product_id),
+  FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE
+);
+
+DROP TABLE IF EXISTS storehouses;
+CREATE TABLE storehouses (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255),
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) COMMENT = 'Склады';
+
+DROP TABLE IF EXISTS storehouses_products;
+CREATE TABLE storehouses_products (
+  storehouse_id BIGINT UNSIGNED,
+  product_id BIGINT UNSIGNED,
+  value INT UNSIGNED COMMENT 'Запас товарной позиции на складе',
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (storehouse_id, product_id),
+  FOREIGN KEY (storehouse_id) REFERENCES storehouses(id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (product_id) REFERENCES products(id) ON UPDATE CASCADE ON DELETE CASCADE
+) COMMENT = 'Запасы на складе';
+
+
+
+
+
