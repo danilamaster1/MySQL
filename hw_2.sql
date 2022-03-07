@@ -1,9 +1,8 @@
 /* 2) Создайте базу данных example, разместите в ней таблицу users,
 состоящую из двух столбцов, числового id и строкового name. */
--- создаю бд
 CREATE DATABASE IF NOT EXISTS example;
 USE example;
--- создаю таблицу
+
 DROP TABLE IF EXISTS users;
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
